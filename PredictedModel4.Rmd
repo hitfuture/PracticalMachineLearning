@@ -1,0 +1,313 @@
+---
+title: "Practical Machine Learning"
+author: "Brett Taylor"
+date: "September 15, 2015"
+output: html_document
+params:
+  cores:
+    value: 4
+  quickRun:
+    value: no
+  runInParallel:
+    value: no
+---
+
+The goal of this project is to predict the manner in which we did the exercise. This is the "classe" variable in the training set. 
+
+
+```{r globalOptions}
+quickRun <- TRUE
+runInParallel <- FALSE
+tryCatch({
+  quickRun <- params$quickRun
+  runInParallel <- params$runInParallel}, error = function(e) {
+    message("Not running in Rmd ")} )
+
+```
+Outcome: classe
+
+#Steps    
+1. Hows did I build the model
+2. How did I use cross validation
+3. What do I think the expected out of sample error is
+4. Why did I make the choices
+5. Predict 20 cases
+
+##Choosing the predictor variables
+I identified that there are a lot of variables in the training set that  have a significant amount of missing values.  These varirables were removed by using the cleanData() function {see Appendix: Code}.  In addition, the first 7 variables in the training set were removed.  These were removed because they would bias the model since they are attributes associated with the testing process, and are not related to the actual methods of sensor measurement.  The rest of the varialbles obtained from the sensors were utilized which accounted for 52 variables.  
+
+##Building the data set
+I created a function called #buildData()  {see Appendix: Code} which loads, cleans and writes the data sets. I also had to remove an observation that had the value "4" in the classe factor variable, and refactor it.  The buildData() function also separates the pml_training.csv file into 2 data sets: training - 75% & validation 25%.  The buildData function allows you to choose "quickRun = TRUE" which will take a very small sampling of the data so that you can test the code prior to fulling building out the model.  
+```{r cleanData, eval=TRUE,message=FALSE}
+source("buildData.R")
+buildData(quickRun = FALSE)
+training <- read.csv("./data/training.csv")
+validation <- read.csv("./data/validation.csv")
+testing <- read.csv("./data/pml-testing.csv")
+
+```
+
+
+##Explore the Data
+We need to get rid of potential predictors that will bias the outcome.
+```{r explore1, eval=FALSE}
+library(caret)
+featurePlot(x=training[,c("roll_belt","total_accel_belt","total_accel_arm", "total_accel_dumbbell","total_accel_forearm")],
+            y=pmltraining$classe,plot = "pairs")
+
+#qplot(user_name,classe,color=user_name,data=pmltraining,geom = "boxplot")
+#qplot(total_accel_belt,classe,color=user_name,data=pmltraining)
+
+```
+
+
+##Create a Model      
+I chose to utilize 3 different model types within the caret package.  The following model types were chosen:
+* Gradient Boosing Model (gbm)
+* Least Squares Support Vector Machine with Radial Basis Function Kernel (svmRadial)
+* Random Forest Model (rf)
+ 
+Each of these are work well with category based outcomes.   Each model utilizes the same training set.  
+```{r createModels,warning=FALSE,message=FALSE,eval=FALSE}
+source("buildModelGbm.R")
+source("buildModelSvm.R")
+source("buildModelRfm.R")
+
+#buildModels
+source("buildData.R")
+fast = FALSE
+buildData(quickRun=fast)
+message("load buildModelGbm.R")
+source("buildModelGbm.R")
+training <- read.csv("./data/training.csv")
+message("run buildGbm()")
+gmbFit <- buildGbm(quickRun =fast,runInParallel=TRUE,cores=4,data=training)
+source("buildModelSvm.R")
+svmFit <- buildSvm(quickRun =fast,runInParallel=TRUE,cores=4,data=training)
+source("buildModelRfm.R")
+rfmFit <- buildRfm(quickRun =fast,runInParallel=TRUE,cores=4,data=training)
+gmbFit
+svmFit
+rfmFit
+```
+
+```{r echo=FALSE}
+
+load("./data/gbmFit_full.RData")
+gbmFit <- fit
+load("./data/svmFit.RData")
+svmFit <- svmFit1
+ 
+load("./data/rfmFit.RData")
+rfmFit <- rfmFit6
+
+```
+
+##Performance of Computing
+I utilized several different methods to improve performance including the parallel computing capabilities that have been developed in the Revolutions analytics version of R.   
+```{r measurePerformance, echo=FALSE, message=FALSE}
+library(dplyr)
+library(knitr)
+library(caret)
+performanceMetrics <- read.csv("./perform.log")
+performanceMetrics <- performanceMetrics%>%filter(quickRun == FALSE)
+summary(performanceMetrics <- as.data.frame(performanceMetrics))
+kable(performanceMetrics)
+```
+
+##Cross Validation
+This demonstrates the amount of cross validation performed by each of the 3 models.
+```{r crossValidation, echo=FALSE }
+trellis.par.set(caretTheme())
+plot(gbmFit,main="Gradient Boosting Model(gbm) plot" )
+plot(svmFit,main="svmRadial - Plot" )
+plot(rfmFit,main="Random Forest (rf) model plot" )
+
+```
+
+
+##Predict with Validation Set
+
+Each model utilizes cross validation as it is learning.  Below are the charts that show hte outcomes of each of the models.   The best model is the Random Forest based on its.
+
+```{r modelValidaton, echo= FALSE, eval=TRUE}
+validatePredictionModel <- function ( model,validation.set) {
+  validation.results <- predict(model,newdata = validation.set)
+  validation.df <- data.frame(validation$classe,validation.results)
+  denom <- nrow(validation.df)
+  matchCount  <- sum(validation.df[,1] == validation.df[,2])
+  accuracyOfData <- (matchCount/denom)*100
+  confusionMatrix(factor(validation.df$validation.results),validation.df$validation.classe)
+}
+
+```
+
+##Confusion Matricies
+###GBM Model Predication Validation
+```{r modelGbm, echo= FALSE, eval=TRUE,message=FALSE}
+validatePredictionModel(gbmFit,validation)
+```
+
+###SVM Model Predication Validation
+
+```{r modelSvm, echo= FALSE, eval=TRUE,message=FALSE}
+validatePredictionModel(svmFit,validation)
+```
+
+
+###Random Forest Model Predication Validation
+
+```{r modelRfm, echo= FALSE, eval=TRUE,message=FALSE}
+validatePredictionModel(rfmFit,validation)
+```
+
+###Error Rate
+The error rates for each model are shown above based on the validation set.  When looking at the current models, we see an accuracy rate above 98%.  We utilize the 3 models to reduce the error rate.  The calculation has not yet been completed to see the final rate.
+
+##Combined Model 
+To get value of the three different models, I have ensembled the models, and utilized the majority vote across the models.  The outcome variable was created by choosing the majority of the 3 predicted variables (classe), and choosing the factor with maximum count.  This model works well when there is less data.
+
+
+
+
+```{r createTestResults,results="asis",message=FALSE,echo=FALSE}
+library(tidyr)
+library(knitr)
+#testing.results.adaBagFit <- predict(adaBagFit,newdata = pmltesting)
+testing.results.svmFit <- predict(svmFit,newdata = testing)
+testing.results.gmbFit <- predict(gbmFit,newdata = testing)
+testing.results.rfmFit<- predict(rfmFit,newdata = testing)
+#Create the test set
+test.set.results <- data.frame(
+           svmFit=testing.results.svmFit,
+           gmbFit=testing.results.gmbFit,
+           rfmFit=testing.results.rfmFit 
+           )
+modelCount <- ncol(test.set.results)
+test.set.results<-cbind(testObs = as.integer(row.names(test.set.results)),test.set.results)
+test.results <- test.set.results%>%tidyr::gather(key=testObs)
+names(test.results)<- c("testObs","key","value")
+test.results <- test.results%>%dplyr::count(testObs,value)%>%arrange(testObs,desc(n))
+#test.results <- test.results[order(test.results$n,decreasing=TRUE),]
+test.results<- test.results[!duplicated(test.results$testObs),]
+vote <- test.results[,2:3]
+vote$perc <-(vote$n/modelCount) * 100
+names(vote)<-c("Outcome Vote","Majority Vote Count","Majority Vote %")
+ 
+test.set.results  <- cbind(test.set.results ,vote)
+kable(test.set.results,digits = 1,caption = "Test Results from all models. ")
+
+outcomeVote <- as.character(test.set.results[,5])
+
+pml_write_files = function(x){
+  n = length(x)
+  for(i in 1:n){
+    filename = paste0("problem_id_",i,".txt")
+    write.table(x[i],file=filename,quote=FALSE,row.names=FALSE,col.names=FALSE)
+  }
+}
+
+pml_write_files(outcomeVote)
+
+
+```
+
+---
+title: "Appendix"
+author: "Brett Taylor"
+date: "September 27, 2015"
+output: html_document
+---
+#Appendix: Code
+I have embedded the code in the appendix so that it is easily visible to the reviewers, and helps to create reproducability.   
+```{r loadBuildData, message=FALSE,echo=FALSE,}
+source("buildData.R")
+source("runModel.R")
+source("buildModelGbm.R")
+source("buildModelSvm.R")
+source("buildModelRfm.R")
+source("runModel.R")
+
+```
+
+##cleanData()
+This function removes variables from the data set that have over 50% missing values.  It performs this by calculating the percentage of missing values in each variable in the dataframe.  
+
+```{r code=capture.output(dump('cleanData', '')),tidy=TRUE}
+#Replaced with Function
+```
+
+##buildData()
+This function is ran to load in the training and testing data.  Training data is split into 2 sets.  75% of the observations are used for model training, and 15% used for validation using the function caret::createDataPartition()
+The training and validation data is writen into separate files "./data/training.csv" and "./data/testing.csv" for reuse.
+```{r code=capture.output(dump('buildData', '')),tidy=TRUE}
+#Replaced with Function
+```
+
+##sendMessageToMe()
+This function utilizes mailR to send email messages to me through a google gmail account.  I utilize this because of the long duration of time required to build models.  There is a function not included in this set secureAccess() that has the correct attributes required to authenticate into the google mail server.
+```{r code=capture.output(dump('sendMessageToMe', '')),tidy=TRUE}
+#Replaced with Function
+``` 
+
+##sendStartMessage()
+Send out the email message at the beggining of the model creation
+```{r code=capture.output(dump('sendStartMessage', '')),tidy=TRUE}
+#Replaced with Function
+``` 
+
+##sendEndMessage()
+Send out the email message at the beggining of the model creation
+
+```{r code=capture.output(dump('sendEndMessage', '')),tidy=TRUE}
+#Replaced with Function
+``` 
+
+##runModel()
+This is a function that allows the passage of a code block that encompasses model creation.  Its purpose is to simplify email messaging, and logging.  It takes advantage of the ability to run an expression within the context of this function.  
+```{r code=capture.output(dump('runModel', '')),tidy=TRUE}
+#Replaced with Function
+```
+##buildGbm()
+ This is the code that builds the Gradient Boosting Model
+```{r code=capture.output(dump('buildGbm', '')),tidy=TRUE}
+#Replaced with Function
+``` 
+##buildSvm()
+ This is the code that builds the Least Squares Support Vector Machine with Radial Basis Function Kernel.  
+```{r code=capture.output(dump('buildSvm', '')),tidy=TRUE}
+#Replaced with Function
+``` 
+##buildRfm()
+This is the code that builds the Random Forest Model
+```{r code=capture.output(dump('buildRfm', '')),tidy=TRUE}
+#Replaced with Function
+``` 
+
+\newPage
+
+#Appendix: Parallel Processing
+The code execution performance is very time consuming and resource intensive so I adopted the parallel processing model that is embedded in the caret package.  Parallel processing will work when you utilize the forEach() method in your code, and luckily this will work.  The functions that build the models written above allow the passing of a parameter _runInParallel()_ and _cores_ that enables the use of the the library doMC which on an Operating System that supports fork() (OS/X , Linux, Unix) will take advantage of the local processors and the multi-core chips.    I worked through many problems and discovered that this code may not be run within the RStudio IDE.   You must execute it from the terminal command line.   
+
+__>RScript runModels.R__
+
+```{r tidy=TRUE,eval=FALSE}
+#runModels.R
+source("buildData.R")
+fast = FALSE
+buildData(quickRun=fast)
+message("load buildModelGbm.R")
+source("buildModelGbm.R")
+training <- read.csv("./data/training.csv")
+message("run buildGbm()")
+gmbFit <- buildGbm(quickRun =fast,runInParallel=TRUE,cores=4,data=training)
+source("buildModelSvm.R")
+svmFit <- buildSvm(quickRun =fast,runInParallel=TRUE,cores=4,data=training)
+source("buildModelRfm.R")
+rfmFit <- buildRfm(quickRun =fast,runInParallel=TRUE,cores=4,data=training)
+
+``` 
+
+_>RScript runModels.R_
+
+The advantage of this is that you can reduce the time to train the model by over 1/2 if you utilize 4 to 5 cores to process.

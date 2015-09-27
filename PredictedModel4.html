@@ -74,8 +74,7 @@ img {
 </div>
 
 
-<p>What you should submit</p>
-<p>The goal of this project is to predict the manner in which they did the exercise. This is the “classe” variable in the training set.</p>
+<p>The goal of this project is to predict the manner in which we did the exercise. This is the “classe” variable in the training set.</p>
 <pre class="r"><code>quickRun &lt;- TRUE
 runInParallel &lt;- FALSE
 tryCatch({
@@ -215,7 +214,10 @@ rfmFit</code></pre>
 </div>
 <div id="predict-with-validation-set" class="section level2">
 <h2>Predict with Validation Set</h2>
-<p>Each model utilizes cross validation as it is learning. Below are the charts that show hte outcomes of each of the models. The best model is the Random Forest</p>
+<p>Each model utilizes cross validation as it is learning. Below are the charts that show hte outcomes of each of the models. The best model is the Random Forest based on its.</p>
+</div>
+<div id="confusion-matricies" class="section level2">
+<h2>Confusion Matricies</h2>
 <div id="gbm-model-predication-validation" class="section level3">
 <h3>GBM Model Predication Validation</h3>
 <pre><code>## Confusion Matrix and Statistics
@@ -320,7 +322,7 @@ rfmFit</code></pre>
 </div>
 <div id="error-rate" class="section level3">
 <h3>Error Rate</h3>
-<p>The error rates for each model are shown above based on the validation set.</p>
+<p>The error rates for each model are shown above based on the validation set. When looking at the current models, we see an accuracy rate above 98%. We utilize the 3 models to reduce the error rate. The calculation has not yet been completed to see the final rate.</p>
 </div>
 </div>
 <div id="combined-model" class="section level2">

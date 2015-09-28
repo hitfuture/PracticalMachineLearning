@@ -25,3 +25,5 @@ model_type,quickRun,runInParallel,cores,user,system,elapsed
 "rf",TRUE,TRUE,4,1.157,0.082,14.484
 "gbm",FALSE,TRUE,4,11.664,1.031,2079.671
 "gbm",FALSE,TRUE,4,35.067,1.889,2113.217
+"rf",FALSE,TRUE,4,57.003,3.922,8978.039
+"svmRadial",FALSE,FALSE,1,11980.985,869.036,12210.264

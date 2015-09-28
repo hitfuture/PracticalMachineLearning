@@ -98,8 +98,8 @@ gbmFit <- fit
 load("./data/svmFit.RData")
 svmFit <- svmFit1
  
-load("./data/rfmFit.RData")
-rfmFit <- rfmFit6
+load("./data/rfFit_full.RData")
+rfmFit <- fit
 
 ```
 

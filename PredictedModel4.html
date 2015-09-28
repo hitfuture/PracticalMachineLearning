@@ -142,20 +142,20 @@ rfmFit</code></pre>
 <div id="performance-of-computing" class="section level2">
 <h2>Performance of Computing</h2>
 <p>I utilized several different methods to improve performance including the parallel computing capabilities that have been developed in the Revolutions analytics version of R.</p>
-<pre><code>##      model_type  quickRun       runInParallel      cores  
-##  gbm      :4    Mode :logical   Mode:logical   Min.   :4  
-##  rf       :0    FALSE:4         TRUE:4         1st Qu.:4  
-##  svmRadial:0    NA's :0         NA's:0         Median :4  
-##                                                Mean   :4  
-##                                                3rd Qu.:4  
-##                                                Max.   :4  
-##       user            system          elapsed       
-##  Min.   : 1.579   Min.   :0.1570   Min.   :  14.41  
-##  1st Qu.: 1.798   1st Qu.:0.1623   1st Qu.:  15.45  
-##  Median : 6.768   Median :0.5975   Median :1047.73  
-##  Mean   :12.545   Mean   :0.8103   Mean   :1055.77  
-##  3rd Qu.:17.515   3rd Qu.:1.2455   3rd Qu.:2088.06  
-##  Max.   :35.067   Max.   :1.8890   Max.   :2113.22</code></pre>
+<pre><code>##      model_type  quickRun       runInParallel       cores    
+##  gbm      :4    Mode :logical   Mode :logical   Min.   :1.0  
+##  rf       :1    FALSE:6         FALSE:1         1st Qu.:4.0  
+##  svmRadial:1    NA's :0         TRUE :5         Median :4.0  
+##                                 NA's :0         Mean   :3.5  
+##                                                 3rd Qu.:4.0  
+##                                                 Max.   :4.0  
+##       user               system            elapsed        
+##  Min.   :    1.579   Min.   :  0.1570   Min.   :   14.41  
+##  1st Qu.:    4.319   1st Qu.:  0.3808   1st Qu.:  531.76  
+##  Median :   23.366   Median :  1.4600   Median : 2096.44  
+##  Mean   : 2014.695   Mean   :146.0332   Mean   : 4235.23  
+##  3rd Qu.:   51.519   3rd Qu.:  3.4137   3rd Qu.: 7261.83  
+##  Max.   :11980.985   Max.   :869.0360   Max.   :12210.26</code></pre>
 <table>
 <thead>
 <tr class="header">
@@ -204,6 +204,24 @@ rfmFit</code></pre>
 <td align="right">35.067</td>
 <td align="right">1.889</td>
 <td align="right">2113.217</td>
+</tr>
+<tr class="odd">
+<td align="left">rf</td>
+<td align="left">FALSE</td>
+<td align="left">TRUE</td>
+<td align="right">4</td>
+<td align="right">57.003</td>
+<td align="right">3.922</td>
+<td align="right">8978.039</td>
+</tr>
+<tr class="even">
+<td align="left">svmRadial</td>
+<td align="left">FALSE</td>
+<td align="left">FALSE</td>
+<td align="right">1</td>
+<td align="right">11980.985</td>
+<td align="right">869.036</td>
+<td align="right">12210.264</td>
 </tr>
 </tbody>
 </table>

@@ -86,33 +86,36 @@ source("buildModelSvm.R")
 svmFit <- buildSvm(quickRun =fast,runInParallel=TRUE,cores=4,data=training)
 source("buildModelRfm.R")
 rfmFit <- buildRfm(quickRun =fast,runInParallel=TRUE,cores=4,data=training)
-gmbFit
-svmFit
-rfmFit
+
 ```
 
 ```{r echo=FALSE}
 
 load("./data/gbmFit_full.RData")
 gbmFit <- fit
-load("./data/svmFit.RData")
-svmFit <- svmFit1
- 
+gbmFit
+load("./data/svmFit_full.RData")
+svmFit <- fit
+svmFit
 load("./data/rfFit_full.RData")
 rfmFit <- fit
-
+rfmFit
 ```
 
 ##Performance of Computing
-I utilized several different methods to improve performance including the parallel computing capabilities that have been developed in the Revolutions analytics version of R.   
+I utilized several different methods to improve performance including the parallel computing capabilities that have been developed in the Revolutions analytics version of R.   Additional information can be found in the Appendix: Parallel Processing
 ```{r measurePerformance, echo=FALSE, message=FALSE}
 library(dplyr)
 library(knitr)
 library(caret)
 performanceMetrics <- read.csv("./perform.log")
 performanceMetrics <- performanceMetrics%>%filter(quickRun == FALSE)
-summary(performanceMetrics <- as.data.frame(performanceMetrics))
-kable(performanceMetrics)
+performanceMetrics <- as.data.frame(performanceMetrics)
+performanceMetrics$user <- performanceMetrics$user/60
+performanceMetrics$system <- performanceMetrics$system / 60
+performanceMetrics$system <- performanceMetrics$elapsed / 60
+
+kable(performanceMetrics,digits = 1,caption = "Compute Performance Metrics - in Minutes")
 ```
 
 ##Cross Validation
@@ -128,7 +131,7 @@ plot(rfmFit,main="Random Forest (rf) model plot" )
 
 ##Predict with Validation Set
 
-Each model utilizes cross validation as it is learning.  Below are the charts that show hte outcomes of each of the models.   The best model is the Random Forest based on its.
+Each model utilizes cross validation as it is learning.  Below are the charts that show the outcomes of each of the models.   The best model is the Random Forest based on its accuracy.
 
 ```{r modelValidaton, echo= FALSE, eval=TRUE}
 validatePredictionModel <- function ( model,validation.set) {

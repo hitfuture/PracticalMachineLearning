@@ -1,0 +1,25 @@
+---
+title: "Parallel Processing with Caret"
+author: "Brett Taylor"
+date: "October 11, 2015"
+output: html_document
+---
+
+ 
+I utilize several different methods to improve performance including the parallel computing capabilities that have been developed in the Revolutions analytics version of R.  Below is a table that shows the difference in execution on a MacBook Pro which has 8 logical cores when parallel processing is utilized.  This has a large impact on the ability to test and create models that utilize a large amount of compute capabilities.   My next attempt will be parallel processsing across multiple machines. 
+
+```{r measurePerformance, echo=FALSE, message=FALSE}
+library(dplyr)
+library(knitr)
+library(caret)
+performanceMetrics <- read.csv("../perform.log",sep = "\t")
+performanceMetrics <- performanceMetrics%>%filter(quickRun == FALSE)
+performanceMetrics <- performanceMetrics%>%select(-quickRun)
+performanceMetrics <- as.data.frame(performanceMetrics)
+performanceMetrics$user <- performanceMetrics$user/60
+performanceMetrics$system <- performanceMetrics$system / 60
+performanceMetrics$system <- performanceMetrics$elapsed / 60
+
+kable(performanceMetrics,digits = 1,caption = "Compute Performance Metrics - in Minutes")
+```
+ 

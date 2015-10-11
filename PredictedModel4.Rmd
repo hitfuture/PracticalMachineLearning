@@ -47,19 +47,7 @@ testing <- read.csv("./data/pml-testing.csv")
 
 ```
 
-
-##Explore the Data
-We need to get rid of potential predictors that will bias the outcome.
-```{r explore1, eval=FALSE}
-library(caret)
-featurePlot(x=training[,c("roll_belt","total_accel_belt","total_accel_arm", "total_accel_dumbbell","total_accel_forearm")],
-            y=pmltraining$classe,plot = "pairs")
-
-#qplot(user_name,classe,color=user_name,data=pmltraining,geom = "boxplot")
-#qplot(total_accel_belt,classe,color=user_name,data=pmltraining)
-
-```
-
+ 
 
 ##Create a Model      
 I chose to utilize 3 different model types within the caret package.  The following model types were chosen:
@@ -67,7 +55,7 @@ I chose to utilize 3 different model types within the caret package.  The follow
 * Least Squares Support Vector Machine with Radial Basis Function Kernel (svmRadial)
 * Random Forest Model (rf)
  
-Each of these are work well with category based outcomes.   Each model utilizes the same training set.  
+Each of these work well with category based outcomes.   Each model utilizes the same training set, and has the same seed set so that validation of accuracy can be performed.  
 ```{r createModels,warning=FALSE,message=FALSE,eval=FALSE}
 source("buildModelGbm.R")
 source("buildModelSvm.R")
@@ -90,7 +78,7 @@ rfmFit <- buildRfm(quickRun =fast,runInParallel=TRUE,cores=4,data=training)
 ```
 
 ```{r echo=FALSE}
-
+#This allows for the loading of the models from files.  They were saved when the build[model]() function was ran.   This allows time to build better documentation.
 load("./data/gbmFit_full.RData")
 gbmFit <- fit
 gbmFit
@@ -103,13 +91,14 @@ rfmFit
 ```
 
 ##Performance of Computing
-I utilized several different methods to improve performance including the parallel computing capabilities that have been developed in the Revolutions analytics version of R.   Additional information can be found in the Appendix: Parallel Processing
+I utilize several different methods to improve performance including the parallel computing capabilities that have been developed in the Revolutions analytics version of R.  Below is a table that shows the difference in execution on a MacBook Pro which has 8 logical cores when parallel processing is utilized.  This has a large impact on the ability to test and create  Additional information can be found in the Appendix: Parallel Processing
 ```{r measurePerformance, echo=FALSE, message=FALSE}
 library(dplyr)
 library(knitr)
 library(caret)
-performanceMetrics <- read.csv("./perform.log")
+performanceMetrics <- read.csv("./perform.log",sep = "\t")
 performanceMetrics <- performanceMetrics%>%filter(quickRun == FALSE)
+performanceMetrics <- performanceMetrics%>%select(-quickRun)
 performanceMetrics <- as.data.frame(performanceMetrics)
 performanceMetrics$user <- performanceMetrics$user/60
 performanceMetrics$system <- performanceMetrics$system / 60
@@ -128,7 +117,7 @@ plot(rfmFit,main="Random Forest (rf) model plot" )
 
 ```
 
-
+Cross falidation can be performed using three separate methods.  
 ##Predict with Validation Set
 
 Each model utilizes cross validation as it is learning.  Below are the charts that show the outcomes of each of the models.   The best model is the Random Forest based on its accuracy.
@@ -165,7 +154,7 @@ validatePredictionModel(rfmFit,validation)
 ```
 
 ###Error Rate
-The error rates for each model are shown above based on the validation set.  When looking at the current models, we see an accuracy rate above 98%.  We utilize the 3 models to reduce the error rate.  The calculation has not yet been completed to see the final rate.
+The error rates for each model are shown above based on the validation set.  When looking at the current models, we see an accuracy rate above 99%.  We utilize the 3 models to reduce the error rate.  The calculation has not yet been completed to see the final rate.
 
 ##Combined Model 
 To get value of the three different models, I have ensembled the models, and utilized the majority vote across the models.  The outcome variable was created by choosing the majority of the 3 predicted variables (classe), and choosing the factor with maximum count.  This model works well when there is less data.
@@ -241,8 +230,8 @@ This function removes variables from the data set that have over 50% missing val
 ```
 
 ##buildData()
-This function is ran to load in the training and testing data.  Training data is split into 2 sets.  75% of the observations are used for model training, and 15% used for validation using the function caret::createDataPartition()
-The training and validation data is writen into separate files "./data/training.csv" and "./data/testing.csv" for reuse.
+This function is purpose is to load the training and testing data.  Training data is split into 2 sets.  75% of the observations are used for model training, and 15% used for validation using the function caret::createDataPartition()
+The training and validation data is writen into separate files "./data/training.csv" and "./data/testing.csv" for reuse.   An additional feature is based on the parameter "quickRun".  If this parameter is set to TRUE, then it takes a small sample of the data set, and utilizes this as the learning and validation. 
 ```{r code=capture.output(dump('buildData', '')),tidy=TRUE}
 #Replaced with Function
 ```
@@ -287,7 +276,7 @@ This is the code that builds the Random Forest Model
 #Replaced with Function
 ``` 
 
-\newPage
+\newpage
 
 #Appendix: Parallel Processing
 The code execution performance is very time consuming and resource intensive so I adopted the parallel processing model that is embedded in the caret package.  Parallel processing will work when you utilize the forEach() method in your code, and luckily this will work.  The functions that build the models written above allow the passing of a parameter _runInParallel()_ and _cores_ that enables the use of the the library doMC which on an Operating System that supports fork() (OS/X , Linux, Unix) will take advantage of the local processors and the multi-core chips.    I worked through many problems and discovered that this code may not be run within the RStudio IDE.   You must execute it from the terminal command line.   
@@ -313,4 +302,4 @@ rfmFit <- buildRfm(quickRun =fast,runInParallel=TRUE,cores=4,data=training)
 
 _>RScript runModels.R_
 
-The advantage of this is that you can reduce the time to train the model by over 1/2 if you utilize 4 to 5 cores to process.
+The advantage of this is that you can reduce the time to train the model by over 1/3 of the time that serial computation takes in R if you utilize 4 to 5 cores to process.

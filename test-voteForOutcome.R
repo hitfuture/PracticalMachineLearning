@@ -19,3 +19,11 @@ expect_equal(ncol(result),3)
 
 outcome <- voteForOutcome(result)
 expect_equal(nrow(outcome),nrow(result))
+confusionMatrix(outcome$outcome,validateData$classe)
+svm
+gbm
+plot(rf$finalModel)
+plot(svm)
+plot(rf)
+plot(gbm)
+plot(gbm$finalModel)

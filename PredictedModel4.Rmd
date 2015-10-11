@@ -1,7 +1,7 @@
 ---
 title: "Practical Machine Learning"
 author: "Brett Taylor"
-date: "September 15, 2015"
+date: "October 11, 2015"
 output: html_document
 params:
   cores:
@@ -12,10 +12,9 @@ params:
     value: no
 ---
 
-The goal of this project is to predict the manner in which we did the exercise. This is the "classe" variable in the training set. 
 
 
-```{r globalOptions}
+```{r globalOptions, echo = FALSE}
 quickRun <- TRUE
 runInParallel <- FALSE
 tryCatch({
@@ -24,6 +23,9 @@ tryCatch({
     message("Not running in Rmd ")} )
 
 ```
+
+The goal of this project is to predict the manner in which we did the exercise. This is the "classe" variable in the training set. 
+
 Outcome: classe
 
 #Steps    

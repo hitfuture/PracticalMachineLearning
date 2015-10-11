@@ -154,7 +154,7 @@ validatePredictionModel(rfmFit,validation)
 ```
 
 ###Error Rate
-The error rates for each model are shown above based on the validation set.  When looking at the current models, we see an accuracy rate above 99%.  We utilize the 3 models to reduce the error rate.  The calculation has not yet been completed to see the final rate.
+The error rates for each model are shown above based on the validation set.  When looking at the current models, we see an accuracy rate above 99%.  We utilize the 3 models to reduce the error rate.  The out of sample 
 
 ##Combined Model 
 To get value of the three different models, I have ensembled the models, and utilized the majority vote across the models.  The outcome variable was created by choosing the majority of the 3 predicted variables (classe), and choosing the factor with maximum count.  This model works well when there is less data.

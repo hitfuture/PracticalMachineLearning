@@ -18,7 +18,7 @@ performanceMetrics <- performanceMetrics%>%select(-quickRun)
 performanceMetrics <- as.data.frame(performanceMetrics)
 performanceMetrics$user <- performanceMetrics$user/60
 performanceMetrics$system <- performanceMetrics$system / 60
-performanceMetrics$system <- performanceMetrics$elapsed / 60
+performanceMetrics$elapsed <- performanceMetrics$elapsed / 60
 
 kable(performanceMetrics,digits = 1,caption = "Compute Performance Metrics - in Minutes")
 ```

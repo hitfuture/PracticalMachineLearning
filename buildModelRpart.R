@@ -20,18 +20,17 @@ buildRpart<- function (quickRun =TRUE,runInParallel=FALSE,cores=4,data) {
         rpart.grid <- expand.grid(.cp=0.2)     
 
          
-        runModel(dur <- system.time({ fit <- train(classe ~ ., data = data,
-                                                   method="rpart",metric="ROC",
-                                                   tuneLength=10,
-                                                   verbose = FALSE,
-                                                   trControl = fitControl,
-                                                   tuneGrid=rpart.grid
+        runModel(dur <- system.time({ fit <- train(classe ~ .
+                                                   , data = data
+                                                   ,method="rpart"
+                                                  ,tuneLength=10
+        
         )
         
         }),
         "Recursive partitioning for classification (rPart)"
         ) 
-        fileNm <-paste("./data/","rfFit",if(quickRun){"_test"}else{"_full"},".RData",sep = "")
+        fileNm <-paste("./data/","rPartFit",if(quickRun){"_test"}else{"_full"},".RData",sep = "")
         save(fit,file=fileNm)
         
         modelType = "rpart"

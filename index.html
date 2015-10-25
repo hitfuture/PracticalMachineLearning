@@ -79,11 +79,11 @@ img {
 <div id="steps" class="section level1">
 <h1>Steps</h1>
 <ol style="list-style-type: decimal">
-<li>Hows did I build the model</li>
-<li>How did I use cross validation</li>
-<li>What do I think the expected out of sample error is</li>
-<li>Why did I make the choices</li>
-<li>Predict 20 cases</li>
+<li>How did I build the model?</li>
+<li>How did I use cross validation?</li>
+<li>What do I think the expected out of sample error is?</li>
+<li>Why did I make the choices?</li>
+<li>Predict 20 cases?</li>
 </ol>
 <div id="choosing-the-predictor-variables" class="section level2">
 <h2>Choosing the predictor variables</h2>
@@ -297,8 +297,8 @@ rfmFit &lt;- buildRfm(quickRun =fast,runInParallel=TRUE,cores=4,data=training)</
 </div>
 <div id="confusion-matricies---error-by-class" class="section level2">
 <h2>Confusion Matricies - Error by class</h2>
-<div id="gbm-model-predication-validation" class="section level3">
-<h3>GBM Model Predication Validation</h3>
+<div id="gbm-model-prediction-validation" class="section level3">
+<h3>GBM Model Prediction Validation</h3>
 <pre><code>## Confusion Matrix and Statistics
 ## 
 ##           Reference
@@ -331,8 +331,8 @@ rfmFit &lt;- buildRfm(quickRun =fast,runInParallel=TRUE,cores=4,data=training)</
 ## Detection Prevalence   0.2871   0.1915   0.1817   0.1582   0.1815
 ## Balanced Accuracy      0.9851   0.9588   0.9679   0.9640   0.9837</code></pre>
 </div>
-<div id="svm-model-predication-validation" class="section level3">
-<h3>SVM Model Predication Validation</h3>
+<div id="svm-model-prediction-validation" class="section level3">
+<h3>SVM Model Prediction Validation</h3>
 <pre><code>## Confusion Matrix and Statistics
 ## 
 ##           Reference
@@ -365,8 +365,8 @@ rfmFit &lt;- buildRfm(quickRun =fast,runInParallel=TRUE,cores=4,data=training)</
 ## Detection Prevalence   0.3140   0.2168   0.1925  0.10950   0.1672
 ## Balanced Accuracy      0.9773   0.9666   0.8983  0.74023   0.8436</code></pre>
 </div>
-<div id="random-forest-model-predication-validation" class="section level3">
-<h3>Random Forest Model Predication Validation</h3>
+<div id="random-forest-model-prediction-validation" class="section level3">
+<h3>Random Forest Model Prediction Validation</h3>
 <pre><code>## Confusion Matrix and Statistics
 ## 
 ##           Reference
@@ -401,7 +401,7 @@ rfmFit &lt;- buildRfm(quickRun =fast,runInParallel=TRUE,cores=4,data=training)</
 </div>
 <div id="error-rate" class="section level3">
 <h3>Error Rate</h3>
-<p>The error rates for each model are shown above based on the validation set. When looking at the current models, we see an accuracy rate above 99% for rf. We utilize the 3 models to reduce the error rate. This is performed by using a voting model to combine the outcomes.</p>
+<p>The error rates for each model are shown above based on the validation set. When looking at the current models, we see an accuracy rate above 99% for rf using the validation set. We utilize the 3 models to reduce the error rate more. This is performed by using a voting model to combine the outcomes.</p>
 </div>
 </div>
 <div id="combined-model---voting" class="section level2">

@@ -29,11 +29,11 @@ The goal of this project is to predict the manner in which we did the exercise. 
 Outcome: classe
 
 #Steps    
-1. Hows did I build the model
-2. How did I use cross validation
-3. What do I think the expected out of sample error is
-4. Why did I make the choices
-5. Predict 20 cases
+1. How did I build the model?
+2. How did I use cross validation?
+3. What do I think the expected out of sample error is?
+4. Why did I make the choices?
+5. Predict 20 cases?
 
 ##Choosing the predictor variables
 I identified that there are a lot of variables in the training set that  have a significant amount of missing values.  These varirables were removed by using the cleanData() function {see Appendix: Code}.  In addition, the first 7 variables in the training set were removed.  These were removed because they would bias the model since they are attributes associated with the testing process, and are not related to the actual methods of sensor measurement.  The rest of the varialbles obtained from the sensors were utilized which accounted for 52 variables.  
@@ -138,26 +138,26 @@ validatePredictionModel <- function ( model,validation.set) {
 ```
 
 ##Confusion Matricies - Error by class    
-###GBM Model Predication Validation
+###GBM Model Prediction Validation
 ```{r modelGbm, echo= FALSE, eval=TRUE,message=FALSE}
 validatePredictionModel(gbmFit,validation)
 ```
 
-###SVM Model Predication Validation
+###SVM Model Prediction Validation
 
 ```{r modelSvm, echo= FALSE, eval=TRUE,message=FALSE}
 validatePredictionModel(svmFit,validation)
 ```
 
 
-###Random Forest Model Predication Validation
+###Random Forest Model Prediction Validation
 
 ```{r modelRfm, echo= FALSE, eval=TRUE,message=FALSE}
 validatePredictionModel(rfmFit,validation)
 ```
 
 ###Error Rate
-The error rates for each model are shown above based on the validation set.  When looking at the current models, we see an accuracy rate above 99% for rf.  We utilize the 3 models to reduce the error rate.  This is performed by using a voting model to combine the outcomes.
+The error rates for each model are shown above based on the validation set.  When looking at the current models, we see an accuracy rate above 99% for rf using the validation set.   We utilize the 3 models to reduce the error rate more.  This is performed by using a voting model to combine the outcomes.
 
 ##Combined Model - Voting
 To get value of the three different models, I have ensembled the models, and utilized the majority vote across the models.  The outcome variable was created by choosing the majority of the 3 predicted variables (classe), and choosing the factor with max weighting x count.  This model works well when there is less data.  The code is presented in the "Appendix:Code voteForOutcome()"

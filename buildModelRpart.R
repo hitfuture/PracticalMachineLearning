@@ -23,8 +23,8 @@ buildRpart<- function (quickRun =TRUE,runInParallel=FALSE,cores=4,data) {
         runModel(dur <- system.time({ fit <- train(classe ~ .
                                                    , data = data
                                                    ,method="rpart"
-                                                  ,tuneLength=10
-        
+                                                  ,tuneLength=10,
+                                                   trControl=fitControl
         )
         
         }),

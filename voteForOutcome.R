@@ -14,6 +14,19 @@ predictAll <- function(...,data,outcome = NULL) {
 }
 
 
+weightsOf <- function (data,actual) {
+        require(tidyr)
+       totalM <- apply(data, 2,function(x,y) {
+                cm <- confusionMatrix(x,reference=y)
+                classVals <- cm$byClass[,"Balanced Accuracy"]},y=actual) 
+       totalM <- 10^exp(totalM) #Differentiate between values close to .5 vs. 1
+       weights <- cbind(class=unique(actual),as.data.frame(totalM))
+       weights <- weights%>%gather(class)
+       names(weights)<-c("classe","data.source","weight")
+       
+       weights
+       
+}
 voteForOutcome <- function(...,weights=1,outcome = NULL) {
         library(tidyr)
         arraysOfArgs <- list(...)
@@ -30,16 +43,22 @@ voteForOutcome <- function(...,weights=1,outcome = NULL) {
                 df <- data.frame(arraysOfArgs)     
                 names(df) <- namesOfArgs
         }
-        weights <- rep_len(weights,numberOfArgs)
         modelCount <- ncol(df)
+       if(!is.null(outcome)) {
+               weights <- weightsOf(df,outcome)
+      }
         results <- cbind(testObs = as.integer(row.names(df)),df)
         test.results <- results%>%tidyr::gather(key=testObs)
-        names(test.results)<- c("testObs","key","value")
-        test.results <- test.results%>%dplyr::count(testObs,value)%>%arrange(testObs,desc(n))
+        names(test.results)<- c("testObs","data.source","classe")
+        test.results$classe<-as.factor(test.results$classe)
+        test.results<-left_join(test.results,weights)
+#test.results <- test.results%>%group_by(testObs,value)%>%dplyr::count(testObs,value) #%>%arrange(testObs,desc(n))
+        
+        test.results <- test.results%>%group_by(testObs,classe)%>%dplyr::summarize(total.weight=sum(weight)) %>%arrange(testObs,desc(total.weight))
         test.results<- test.results[!duplicated(test.results$testObs),]
         vote <- test.results[,2:3]
-        vote$perc <-(vote$n/modelCount) 
-        names(vote)<-c("outcome","majority.vote.count","majority.vote.%")
+        #vote$perc <-(vote$n/modelCount) 
+        names(vote)<-c("outcome","outcome weight")
         
         results  <- cbind(results ,vote)
         results

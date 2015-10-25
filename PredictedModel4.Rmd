@@ -1,7 +1,7 @@
 ---
 title: "Practical Machine Learning"
 author: "Brett Taylor"
-date: "October 11, 2015"
+date: "October 25, 2015"
 output: html_document
 params:
   cores:
@@ -52,10 +52,10 @@ testing <- read.csv("./data/pml-testing.csv")
  
 
 ##Create a Model      
-I chose to utilize 3 different model types within the caret package.  The following model types were chosen:
-* Gradient Boosing Model (gbm)
-* Least Squares Support Vector Machine with Radial Basis Function Kernel (svmRadial)
-* Random Forest Model (rf)
+I chose to utilize 3 different model types within the caret package.  The following model types were chosen:    
+* Gradient Boosting Model (gbm)    
+* Least Squares Support Vector Machine with Radial Basis Function Kernel (svmRadial)   
+* Random Forest Model (rf)    
  
 Each of these work well with category based outcomes.   Each model utilizes the same training set, and has the same seed set so that validation of accuracy can be performed.  
 ```{r createModels,warning=FALSE,message=FALSE,eval=FALSE}
@@ -93,7 +93,7 @@ rfmFit
 ```
 
 ##Performance of Computing
-I utilize several different methods to improve performance including the parallel computing capabilities that have been developed in the Revolutions analytics version of R.  Below is a table that shows the difference in execution on a MacBook Pro which has 8 logical cores when parallel processing is utilized.  This has a large impact on the ability to test and create  Additional information can be found in the Appendix: Parallel Processing
+I utilize several different methods to improve performance including the parallel computing capabilities that have been developed in the Revolutions analytics version of R.  Below is a table that shows the difference in execution on a MacBook Pro which has 8 logical cores when parallel processing is utilized.  This has a large impact on the ability to test and create  Additional information can be found in the Appendix: Parallel Processing.
 ```{r measurePerformance, echo=FALSE, message=FALSE}
 library(dplyr)
 library(knitr)
@@ -119,7 +119,8 @@ plot(rfmFit,main="Random Forest (rf) model plot" )
 
 ```
 
-Cross falidation can be performed using three separate methods.  
+Cross validation can be performed using three separate methods.     
+
 ##Predict with Validation Set
 
 Each model utilizes cross validation as it is learning.  Below are the charts that show the outcomes of each of the models.   The best model is the Random Forest based on its accuracy.
@@ -136,7 +137,7 @@ validatePredictionModel <- function ( model,validation.set) {
 
 ```
 
-##Confusion Matricies
+##Confusion Matricies - Error by class    
 ###GBM Model Predication Validation
 ```{r modelGbm, echo= FALSE, eval=TRUE,message=FALSE}
 validatePredictionModel(gbmFit,validation)
@@ -156,40 +157,43 @@ validatePredictionModel(rfmFit,validation)
 ```
 
 ###Error Rate
-The error rates for each model are shown above based on the validation set.  When looking at the current models, we see an accuracy rate above 99%.  We utilize the 3 models to reduce the error rate.  The out of sample 
+The error rates for each model are shown above based on the validation set.  When looking at the current models, we see an accuracy rate above 99% for rf.  We utilize the 3 models to reduce the error rate.  This is performed by using a voting model to combine the outcomes.
 
-##Combined Model 
-To get value of the three different models, I have ensembled the models, and utilized the majority vote across the models.  The outcome variable was created by choosing the majority of the 3 predicted variables (classe), and choosing the factor with maximum count.  This model works well when there is less data.
-
-
+##Combined Model - Voting
+To get value of the three different models, I have ensembled the models, and utilized the majority vote across the models.  The outcome variable was created by choosing the majority of the 3 predicted variables (classe), and choosing the factor with max weighting x count.  This model works well when there is less data.  The code is presented in the "Appendix:Code voteForOutcome()"
 
 
-```{r createTestResults,results="asis",message=FALSE,echo=FALSE}
+###Weighting   
+Weighting is calculated using the _Balanced Accuracy_ from the confusition matrix which is comparing the outcomes of each model to the actual outcome of the validation set. The weights are modfied to ensure that a .5 error rate is significantly lower than .9999 by using an exponential function.
+
+```{r setWeighting,results="asis",message=FALSE,echo=FALSE}
 library(tidyr)
 library(knitr)
+source("voteForOutcome.R")
 #testing.results.adaBagFit <- predict(adaBagFit,newdata = pmltesting)
-testing.results.svmFit <- predict(svmFit,newdata = testing)
-testing.results.gmbFit <- predict(gbmFit,newdata = testing)
-testing.results.rfmFit<- predict(rfmFit,newdata = testing)
-#Create the test set
-test.set.results <- data.frame(
-           svmFit=testing.results.svmFit,
-           gmbFit=testing.results.gmbFit,
-           rfmFit=testing.results.rfmFit 
-           )
-modelCount <- ncol(test.set.results)
-test.set.results<-cbind(testObs = as.integer(row.names(test.set.results)),test.set.results)
-test.results <- test.set.results%>%tidyr::gather(key=testObs)
-names(test.results)<- c("testObs","key","value")
-test.results <- test.results%>%dplyr::count(testObs,value)%>%arrange(testObs,desc(n))
-#test.results <- test.results[order(test.results$n,decreasing=TRUE),]
-test.results<- test.results[!duplicated(test.results$testObs),]
-vote <- test.results[,2:3]
-vote$perc <-(vote$n/modelCount) * 100
-names(vote)<-c("Outcome Vote","Majority Vote Count","Majority Vote %")
+#modelCount <- ncol(test.set.results)
+#test.set.results<-cbind(testObs = as.integer(row.names(test.set.results)),test.set.results)
+#test.results <- test.set.results%>%tidyr::gather(key=testObs)
+#names(test.results)<- c("testObs","key","value")
+#test.results <- test.results%>%dplyr::count(testObs,value)%>%arrange(testObs,desc(n))
+ #test.results<- test.results[!duplicated(test.results$testObs),]
+#vote <- test.results[,2:3]
+#vote$perc <-(vote$n/modelCount) * 100
+#names(vote)<-c("Outcome Vote","Majority Vote Count","Majority Vote %")
  
-test.set.results  <- cbind(test.set.results ,vote)
-kable(test.set.results,digits = 1,caption = "Test Results from all models. ")
+#test.set.results  <- cbind(test.set.results ,vote)
+predicted.validation.results  <- predictAll(gbmFit,svmFit,rfmFit,data=validation)
+expected.outcome <- validation$classe
+weights <- weightsOf(data = predicted.validation.results ,actual = expected.outcome)
+kable(weights,digits = 3)
+```
+
+###Test Results   
+The results of the prediction using the testing data has acheived 100% accuracy.   I would not expect this to be true with a larger data set.
+```{r createTestResults,results="asis",message=FALSE,echo=FALSE}
+predicted.test.results  <- predictAll(gbmFit,svmFit,rfmFit,data=testing)
+test.set.results <- voteForOutcome(predicted.test.results,weights = weights)
+kable(test.set.results,digits = 1,caption = "Test Results from all models.")
 
 outcomeVote <- as.character(test.set.results[,5])
 
@@ -213,7 +217,7 @@ date: "September 27, 2015"
 output: html_document
 ---
 #Appendix: Code
-I have embedded the code in the appendix so that it is easily visible to the reviewers, and helps to create reproducability.   
+I have embedded the code in the appendix so that it is easily visible to the reviewers, and helps to create reproducibility.   
 ```{r loadBuildData, message=FALSE,echo=FALSE,}
 source("buildData.R")
 source("runModel.R")
@@ -245,13 +249,13 @@ This function utilizes mailR to send email messages to me through a google gmail
 ``` 
 
 ##sendStartMessage()
-Send out the email message at the beggining of the model creation
+Send out the email message at the beginning of the model creation
 ```{r code=capture.output(dump('sendStartMessage', '')),tidy=TRUE}
 #Replaced with Function
 ``` 
 
 ##sendEndMessage()
-Send out the email message at the beggining of the model creation
+Send out the email message at the end of the model creation.
 
 ```{r code=capture.output(dump('sendEndMessage', '')),tidy=TRUE}
 #Replaced with Function
@@ -277,7 +281,26 @@ This is the code that builds the Random Forest Model
 ```{r code=capture.output(dump('buildRfm', '')),tidy=TRUE}
 #Replaced with Function
 ``` 
+#Voting 
+I utilized several different models to predict, and built a function for ensembling the outcomes through voting.  The voting method weights the votes based on the class and _Balanced Accuracy_ determined by using the confusion matrix.   This is performed in the following code.   
 
+##voteForOutcome()    
+This is the code that performs the vote based on weighting of outcomes.
+```{r code=capture.output(dump('voteForOutcome', '')),tidy=TRUE}
+#Replaced with Function
+``` 
+
+##predictAll(...,data)   
+This function takes a set of models as the first arguments in the dots, and the data that it will predict against.  It allows multiple models to be easily processed with the same data set. 
+
+```{r code=capture.output(dump('predictAll', '')),tidy=TRUE}
+#Replaced with Function
+```
+##weightsOf()
+This is the code that performs the weights the outcomes based on confusion matrix _Balanced Accuracy_.  This could be improved in the future by showing the expected accuracy.
+```{r code=capture.output(dump('weightsOf', '')),tidy=TRUE}
+#Replaced with Function
+``` 
 \newpage
 
 #Appendix: Parallel Processing
